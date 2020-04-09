@@ -1,0 +1,56 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    restart: always
+    volumes:
+      - .:/var/www/
+    tty: true
+    networks:
+      - jayson-network
+    entrypoint: dockerize -wait tcp://db:3306 -timeout 40s ./.docker/entrypoint.sh
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: mysql:5.7.22
+    command: --innodb-use-native-aio=0
+    restart: always
+    tty: true
+    ports:
+      - 3310:3306
+    volumes:
+      - .docker/dbdata:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_USER: jayson
+      MYSQL_PASSWORD: 123456
+    networks:
+      - jayson-network
+
+  nginx:
+    build: .docker/nginx
+    restart: always
+    tty: true
+    ports:
+      - 8888:80
+    volumes:
+      - .:/var/www
+    networks:
+      - jayson-network
+    depends_on:
+      - app
+
+  redis:
+    image: redis:alpine
+    expose:
+      - 6379
+    networks:
+      - jayson-network
+
+networks:
+  jayson-network:
+    driver: bridge
