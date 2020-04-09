@@ -1,5 +1,0 @@
-steps:
-
-  - id: "rodando docker-compose"
-    name: 'gcr.io/$PROJECT'
-    args: ['-f', 'docker-compose.cloudbuild.yaml'],
