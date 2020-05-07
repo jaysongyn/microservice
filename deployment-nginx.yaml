@@ -1,0 +1,29 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: hello-test
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: hello-test
+    spec:
+      containers:
+      - image: nginx:1.7-alpine
+        name: nginx
+        ports:
+          - containerPort: 80
+
+        volumeMounts:
+          - name: nginx-conf
+            mountPath: /etc/nginx/conf.d
+            readOnly: true
+
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: nginx-conf
+            items:
+              - key: nginx.conf
+                path: nginx.conf
