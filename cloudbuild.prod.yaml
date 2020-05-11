@@ -44,10 +44,28 @@ steps:
               "-t",
               "gcr.io/$PROJECT_ID/app-laravel:$SHORT_SHA",
               "-f",
-              "Dcokerfile.prod",
+              "Dockerfile.prod",
               ".",
           ]
 
     - id: "Pushing image"
       name: "gcr.io/cloud-builders/docker"
       args: ["push", "gcr.io/$PROJECT_ID/app-laravel:$SHORT_SHA"]
+
+    - id: "Adjusting deployment file - k8s"
+      name: "gcr.io/cloud-builders/gcloud"
+      args:
+          - "-c"
+          - |
+              sed 's#img-app-deployment#gcr.io/$PROJECT_ID/app-laravel:$SHORT_SHA#g' .k8s/app/deployment.yaml > k8s/app/deployment.new.yanl;
+              cat k8s/app/deployment.new.yanl;
+
+    - id: "Deploying k8s"
+      name: "gcr.io/cloud-builders/kubctl"
+      args:
+          - "apply"
+          - "-f"
+          - "k8s/app/deployment-new.yaml"
+      env:
+          - "CLOUDSDK_COMPUTE_ZONE=us-central1-c"
+          - "CLOUDSDK_CONTAINER_CLUSTER=my-first-cluster-1"
